@@ -24,10 +24,10 @@ interface DashboardHeaderProps {
 }
 
 const NAV_TABS: { id: AppTab; label: string; icon: LucideIcon; iconClassName: string }[] = [
-  { id: 'dashboard', label: 'Workspace', icon: LayoutDashboard, iconClassName: 'h-4 w-4 flex-shrink-0 text-slate-700' },
   { id: 'search', label: 'Search Registry', icon: Search, iconClassName: 'h-4 w-4 flex-shrink-0 text-sky-600' },
-  { id: 'strategy', label: 'Legal Strategy & Predictor', icon: ShieldAlert, iconClassName: 'h-4 w-4 flex-shrink-0 text-indigo-600' },
-  { id: 'insights', label: 'Active Case & AI Coach', icon: Sparkles, iconClassName: 'h-4 w-4 flex-shrink-0 text-amber-600 fill-current' }
+  { id: 'dashboard', label: 'Workspace', icon: LayoutDashboard, iconClassName: 'h-4 w-4 flex-shrink-0 text-slate-700' },
+  { id: 'insights', label: 'Active Case & AI Coach', icon: Sparkles, iconClassName: 'h-4 w-4 flex-shrink-0 text-amber-600 fill-current' },
+  { id: 'strategy', label: 'Legal Strategy & Predictor', icon: ShieldAlert, iconClassName: 'h-4 w-4 flex-shrink-0 text-indigo-600' }
 ];
 
 function getInitials(name: string): string {
