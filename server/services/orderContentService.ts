@@ -2,7 +2,6 @@
  * Official court-order content: retrieves each order's text and the registry's
  * AI analysis once, stores it on the case, and shapes it for display.
  */
-import { PDFParse } from 'pdf-parse';
 import { Case, CaseOrder } from '../../src/types';
 import { db } from '../db/database';
 import { EcourtService, EcourtsCreditsError } from './ecourtService';
@@ -14,7 +13,15 @@ const inFlight = new Map<string, Promise<Case | undefined>>();
 
 /** Text layer of a PDF ('' for scanned images without text). */
 async function extractPdfText(buffer: Buffer): Promise<string> {
-  const parser = new PDFParse({ data: new Uint8Array(buffer) });
+  // Loaded on demand so a missing PDF runtime (e.g. on serverless hosts) can't break startup.
+  let parser: import('pdf-parse').PDFParse;
+  try {
+    const { PDFParse } = await import('pdf-parse');
+    parser = new PDFParse({ data: new Uint8Array(buffer) });
+  } catch (e: any) {
+    console.warn('[Orders] PDF parser unavailable:', e?.message || e);
+    return '';
+  }
   try {
     const result = await parser.getText();
     return (result.text || '').replace(/\n-- \d+ of \d+ --\n/g, '\n').trim();

@@ -1,4 +1,3 @@
-import puppeteer from 'puppeteer';
 import { Case, CaseOrder } from '../../src/types';
 import { config } from '../config';
 export class PdfService {
@@ -6,6 +5,8 @@ export class PdfService {
    * Generates a pristine, authenticated vector PDF copy of a court order / judgment
    */
   static async generateCourtOrderPdf(caseItem: Case, order: CaseOrder): Promise<Buffer> {
+    // Loaded on demand: Puppeteer is not available on serverless hosts and must not break startup.
+    const { default: puppeteer } = await import('puppeteer');
     const browser = await puppeteer.launch({
       executablePath: config.pdfBrowserPath || undefined,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
