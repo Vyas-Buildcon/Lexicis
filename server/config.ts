@@ -26,13 +26,22 @@ const env = (name: string) => process.env[name]?.trim() || '';
 const cli = parseCliArgs(process.argv.slice(2));
 const isProduction = process.env.NODE_ENV === 'production';
 
+/**
+ * Secret for signing session tokens. Hosted deployments (e.g. Google AI Studio / Cloud Run)
+ * often inject only API keys, so without SESSION_SECRET a stable secret is derived from
+ * one of those: every instance and restart then signs and accepts the same tokens.
+ */
 function resolveSessionSecret(): string {
   const secret = env('SESSION_SECRET');
   if (secret) return secret;
-  if (isProduction) {
-    throw new Error('SESSION_SECRET must be set in production (see .env.example).');
+
+  const seed = env('GEMINI_API_KEY') || env('ECOURT_API_KEY');
+  if (seed) {
+    console.warn('[config] SESSION_SECRET is not set; deriving the session secret from the configured API key. Set SESSION_SECRET for an independent secret.');
+    return crypto.createHmac('sha256', seed).update('lexicis-session-secret-v1').digest('hex');
   }
-  console.warn('[config] SESSION_SECRET is not set; using a temporary secret. Sessions end when the server restarts.');
+
+  console.warn('[config] SESSION_SECRET is not set and no API key is available; using a temporary secret. Users are signed out whenever the server restarts.');
   return crypto.randomBytes(32).toString('hex');
 }
 
@@ -40,8 +49,9 @@ export const config = {
   port: cli.port ?? parseInt(process.env.PORT || '3000', 10),
   host: cli.host ?? (env('HOST') || '0.0.0.0'),
   isProduction,
-  // Set when running behind a reverse proxy so client IPs are read from X-Forwarded-For
-  trustProxy: env('TRUST_PROXY'),
+  // Hosted deployments run behind a load balancer; client IPs then come from X-Forwarded-For.
+  // Set TRUST_PROXY=0 when serving directly to the internet.
+  trustProxy: env('TRUST_PROXY') || (isProduction ? '1' : ''),
 
   session: {
     secret: resolveSessionSecret(),

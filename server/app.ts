@@ -12,7 +12,7 @@ import { legalRoutes } from './routes/legalRoutes';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  if (config.trustProxy) {
+  if (config.trustProxy && !['0', 'false', 'no'].includes(config.trustProxy.toLowerCase())) {
     app.set('trust proxy', /^\d+$/.test(config.trustProxy) ? parseInt(config.trustProxy, 10) : config.trustProxy);
   }
 

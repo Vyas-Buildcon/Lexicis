@@ -59,7 +59,7 @@ export function rateLimit(options: { windowMs: number; max: number; message: str
 export function securityHeaders(req: Request, res: Response, next: NextFunction) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // No frame restriction: the app is shown inside Google AI Studio's preview frame
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 }
