@@ -29,7 +29,7 @@ export default function App() {
   const { trackedCases, selectedCase, setSelectedCase } = portfolio;
   const supabase = useSupabaseStatus(portfolio.refresh, !!user);
 
-  const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppTab>('search');
 
   // AI Coach welcome pop-up state
   const [showAiCoachWelcome, setShowAiCoachWelcome] = useState(false);
@@ -55,7 +55,7 @@ export default function App() {
 
   const handleLogin = (loggedInUser: User) => {
     login(loggedInUser);
-    setActiveTab('dashboard');
+    setActiveTab('search');
   };
 
   const closeWelcomeCoach = () => {
