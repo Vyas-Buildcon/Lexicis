@@ -1,0 +1,8 @@
+{
+  "name": "brickfour lexicis 1",
+  "description": "Search and track legal cases, get real-time alerts, manage hearings, view court documents, and receive AI-powered legal suggestions and comparative analyses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

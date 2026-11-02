@@ -1,0 +1,45 @@
+import express from 'express';
+import { config } from './config';
+import { errorHandler } from './http';
+import { rateLimit, requireAuth, securityHeaders } from './security/middleware';
+import { systemRoutes } from './routes/systemRoutes';
+import { publicAuthRoutes, accountRoutes } from './routes/authRoutes';
+import { caseRoutes } from './routes/caseRoutes';
+import { kanoonRoutes } from './routes/kanoonRoutes';
+import { legalRoutes } from './routes/legalRoutes';
+
+/** Builds the Express app with every /api route mounted. Front-end serving is added by the caller. */
+export function createApp() {
+  const app = express();
+  app.disable('x-powered-by');
+  if (config.trustProxy) {
+    app.set('trust proxy', /^\d+$/.test(config.trustProxy) ? parseInt(config.trustProxy, 10) : config.trustProxy);
+  }
+
+  app.use(securityHeaders);
+  // Case payloads can carry full judgment text
+  app.use(express.json({ limit: '5mb' }));
+
+  // --- Public ---
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+  });
+  app.use('/api', rateLimit({ windowMs: 60 * 1000, max: 600, message: 'Too many requests. Please slow down.' }));
+  app.use('/api', publicAuthRoutes);
+
+  // --- Signed-in users only ---
+  app.use('/api', requireAuth);
+  app.use('/api', accountRoutes);
+  app.use('/api', systemRoutes);
+  app.use('/api', legalRoutes);
+  app.use('/api/cases', caseRoutes);
+  app.use('/api/indiankanoon', kanoonRoutes);
+
+  // Fallback 404 for any unhandled /api routes - ensure they never return HTML
+  app.use('/api', (req, res) => {
+    res.status(404).json({ error: `API route ${req.method} ${req.originalUrl} not found` });
+  });
+  app.use('/api', errorHandler(config.isProduction));
+
+  return app;
+}

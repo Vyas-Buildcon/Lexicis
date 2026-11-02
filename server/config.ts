@@ -1,0 +1,99 @@
+/**
+ * Central runtime configuration.
+ *
+ * Importing this module loads `.env` first, so every service reads the same
+ * values regardless of import order. Secrets come only from the environment;
+ * see `.env.example` for the full list.
+ */
+import 'dotenv/config';
+import crypto from 'crypto';
+
+function parseCliArgs(argv: string[]) {
+  const parsed: { port?: number; host?: string } = {};
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--port' && argv[i + 1]) {
+      parsed.port = parseInt(argv[i + 1], 10);
+    }
+    if (argv[i] === '--host' && argv[i + 1]) {
+      parsed.host = argv[i + 1];
+    }
+  }
+  return parsed;
+}
+
+const env = (name: string) => process.env[name]?.trim() || '';
+
+const cli = parseCliArgs(process.argv.slice(2));
+const isProduction = process.env.NODE_ENV === 'production';
+
+function resolveSessionSecret(): string {
+  const secret = env('SESSION_SECRET');
+  if (secret) return secret;
+  if (isProduction) {
+    throw new Error('SESSION_SECRET must be set in production (see .env.example).');
+  }
+  console.warn('[config] SESSION_SECRET is not set; using a temporary secret. Sessions end when the server restarts.');
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export const config = {
+  port: cli.port ?? parseInt(process.env.PORT || '3000', 10),
+  host: cli.host ?? (env('HOST') || '0.0.0.0'),
+  isProduction,
+  // Set when running behind a reverse proxy so client IPs are read from X-Forwarded-For
+  trustProxy: env('TRUST_PROXY'),
+
+  session: {
+    secret: resolveSessionSecret(),
+    ttlHours: parseInt(env('SESSION_TTL_HOURS') || '12', 10)
+  },
+
+  // The single authorised portal account (self-registration is disabled)
+  adminAccount: {
+    id: 'archana-katkar',
+    email: 'archana.katkar@brickfour.com',
+    // Only used to seed a brand-new database; the stored (hashed) password is authoritative
+    initialPassword: env('ADMIN_INITIAL_PASSWORD') || 'Archana@123',
+    name: 'Archana Katkar',
+    role: 'attorney' as const,
+    phone: '8975332899',
+    profession: 'Legal Executive',
+    address: 'brickfour, Yerwada',
+    firmName: 'Brickfour'
+  },
+
+  geminiApiKey: env('GEMINI_API_KEY'),
+
+  ecourt: {
+    baseUrl: env('ECOURT_API_BASE_URL') || 'https://webapi.ecourtsindia.com',
+    apiKey: env('ECOURT_API_KEY')
+  },
+
+  indianKanoon: {
+    baseUrl: env('INDIAN_KANOON_BASE_URL') || 'https://api.indiankanoon.org',
+    apiToken: env('INDIAN_KANOON_API_TOKEN')
+  },
+
+  mongoUrl: env('MONGODB_URL'),
+  mongoDbName: env('MONGODB_DB_NAME') || 'spring_inventory',
+
+  supabaseDisplayUrl: env('SUPABASE_URL') || 'Not configured',
+
+  smtp: {
+    host: env('SMTP_HOST'),
+    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587,
+    user: env('SMTP_USER'),
+    pass: process.env.SMTP_PASS || ''
+  },
+
+  alertEmailRecipient: env('ALERT_EMAIL_RECIPIENT') || 'alerts@localhost',
+
+  // Browser used for PDF rendering; defaults to the Chrome build Puppeteer downloads
+  pdfBrowserPath: env('PDF_BROWSER_PATH') || env('PUPPETEER_EXECUTABLE_PATH')
+};
+
+/** Logs which optional integrations are active, without revealing any secret. */
+export function logConfigSummary() {
+  const on = (v: string) => (v ? 'configured' : 'not set');
+  console.log(`[config] mode=${isProduction ? 'production' : 'development'} gemini=${on(config.geminiApiKey)} ecourts=${on(config.ecourt.apiKey)} kanoon=${on(config.indianKanoon.apiToken)} mongodb=${on(config.mongoUrl)} smtp=${on(config.smtp.host)}`);
+}
