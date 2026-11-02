@@ -14,7 +14,8 @@ import { config } from '../config';
 const ECOURT_API_BASE_URL = config.ecourt.baseUrl;
 const ECOURT_API_KEY = config.ecourt.apiKey;
 
-const FACET_CACHE_FILE = path.join(process.cwd(), 'data', 'ecourts-facets.json');
+const FACET_CACHE_FILE = path.join(config.dataDir, 'ecourts-facets.json');
+const BUNDLED_FACET_FILE = path.join(config.bundledDataDir, 'ecourts-facets.json');
 const FACET_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const LEGACY_PLACEHOLDER_ACT = 'Code of Civil Procedure, 1908';
@@ -73,10 +74,25 @@ async function ecourtsJson(apiPath: string, timeoutMs: number): Promise<any | nu
 }
 
 // Original order PDFs are kept on disk so each one is paid for once
-const ORDER_PDF_DIR = path.join(process.cwd(), 'data', 'order-pdfs');
+const ORDER_PDF_DIR = path.join(config.dataDir, 'order-pdfs');
+const BUNDLED_ORDER_PDF_DIR = path.join(config.bundledDataDir, 'order-pdfs');
 
+function pdfRelativePath(cnr: string, filename: string): string {
+  return path.join(cnr.replace(/[^A-Za-z0-9]/g, ''), filename.replace(/[^A-Za-z0-9._-]/g, '_'));
+}
+
+/** Where a downloaded order PDF is written. */
 function cachedPdfPath(cnr: string, filename: string): string {
-  return path.join(ORDER_PDF_DIR, cnr.replace(/[^A-Za-z0-9]/g, ''), filename.replace(/[^A-Za-z0-9._-]/g, '_'));
+  return path.join(ORDER_PDF_DIR, pdfRelativePath(cnr, filename));
+}
+
+/** A previously downloaded copy, in the writable cache or shipped with the deployment. */
+function existingPdfPath(cnr: string, filename: string): string | null {
+  for (const dir of [ORDER_PDF_DIR, BUNDLED_ORDER_PDF_DIR]) {
+    const candidate = path.join(dir, pdfRelativePath(cnr, filename));
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
 }
 
 // ==========================================
@@ -300,12 +316,15 @@ let facetCatalog: FacetCatalog | null = null;
 let facetCatalogLoading: Promise<FacetCatalog | null> | null = null;
 
 function readFacetCacheFile(): FacetCatalog | null {
-  try {
-    const cached = JSON.parse(fs.readFileSync(FACET_CACHE_FILE, 'utf8')) as FacetCatalog;
-    return cached?.facets ? cached : null;
-  } catch {
-    return null;
+  for (const file of [FACET_CACHE_FILE, BUNDLED_FACET_FILE]) {
+    try {
+      const cached = JSON.parse(fs.readFileSync(file, 'utf8')) as FacetCatalog;
+      if (cached?.facets) return cached;
+    } catch {
+      // Not present or unreadable; try the next location
+    }
   }
+  return null;
 }
 
 async function loadFacetCatalog(): Promise<FacetCatalog | null> {
@@ -331,6 +350,7 @@ async function loadFacetCatalog(): Promise<FacetCatalog | null> {
       }
       const catalog: FacetCatalog = { fetchedAt: Date.now(), facets };
       try {
+        fs.mkdirSync(path.dirname(FACET_CACHE_FILE), { recursive: true });
         fs.writeFileSync(FACET_CACHE_FILE, JSON.stringify(catalog));
       } catch (e) {
         console.warn('[ECOURT_PARTNER_API] Could not cache facet catalog:', e);
@@ -523,7 +543,7 @@ export class EcourtService {
   }
 
   static hasCachedOrderPdf(cnr: string, filename: string): boolean {
-    return fs.existsSync(cachedPdfPath(cnr, filename));
+    return existingPdfPath(cnr, filename) !== null;
   }
 
   /**
@@ -532,8 +552,9 @@ export class EcourtService {
    * Throws EcourtsCreditsError when the account has no credit; returns null on other failures.
    */
   static async fetchOrderPdf(cnr: string, filename: string): Promise<Buffer | null> {
+    const existing = existingPdfPath(cnr, filename);
+    if (existing) return fs.readFileSync(existing);
     const cached = cachedPdfPath(cnr, filename);
-    if (fs.existsSync(cached)) return fs.readFileSync(cached);
 
     for (const signed of ['false', 'true']) {
       const res = await ecourtsFetch(

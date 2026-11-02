@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --define:process.env.NODE_ENV=\\\"production\\\" --outfile=dist/server.cjs",
-    "start": "node --enable-source-maps dist/server.cjs",
-    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "vite build && npm run build:server",
+    "build:server": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --define:process.env.NODE_ENV=\\\"production\\\" --outfile=build/server.cjs && esbuild server/vercel.ts --bundle --platform=node --format=cjs --packages=external --define:process.env.NODE_ENV=\\\"production\\\" --outfile=build/vercel-handler.cjs",
+    "start": "node --enable-source-maps build/server.cjs",
+    "clean": "node -e \"for (const d of ['dist','build']) require('fs').rmSync(d,{recursive:true,force:true})\"",
     "lint": "tsc --noEmit"
   },
   "overrides": {
@@ -21,6 +22,7 @@
     "@supabase/supabase-js": "^2.110.7",
     "@tailwindcss/vite": "4.1.14",
     "@types/nodemailer": "^8.0.1",
+    "@vercel/functions": "^2.2.13",
     "@vitejs/plugin-react": "^5.0.4",
     "axios": "^1.20.0",
     "dotenv": "^17.2.3",

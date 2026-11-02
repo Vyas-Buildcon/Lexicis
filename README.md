@@ -13,7 +13,22 @@ Full-stack legal case tracker: an Express API with a React (Vite + Tailwind) fro
 
 Type check: `npm run lint`. Stop the server with Ctrl+C (it shuts down gracefully and flushes pending database syncs).
 
-## Deploying
+## Deploying to Vercel
+
+`vercel.json` is already set up: the React app is served from `dist/`, and every `/api` request runs the Express API as a Vercel Function (`api/index.js` → `build/vercel-handler.cjs`, built by `npm run build`).
+
+1. Import the repository in Vercel. Leave Framework Preset, Build and Output settings on their defaults (vercel.json overrides them).
+2. In **Project → Settings → Environment Variables**, add (Production and Preview):
+   - `SESSION_SECRET` — required; a long random string (see `.env.example`).
+   - `MONGODB_URL` — required for data to persist. Vercel Functions only have a temporary disk, so without it cases, password changes and analyses are lost.
+   - `ECOURT_API_KEY`, `GEMINI_API_KEY` — needed for e-Courts search/orders and AI features.
+   - `CRON_SECRET` — any random string; enables the daily hearing-reminder job (`/api/cron/hearing-reminders`).
+   - Optional: `INDIAN_KANOON_API_TOKEN`, `SMTP_*`, `ALERT_EMAIL_RECIPIENT`.
+3. Redeploy after changing variables (they are read when a function starts).
+
+Limits on Vercel: the analysis endpoints can run for up to 300 seconds (`maxDuration`); the hearing-reminder job runs once a day instead of every minute; generated PDFs for Indian Kanoon judgments need a headless browser and are unavailable (original e-Courts order PDFs work).
+
+## Deploying to a server
 
 - Set `SESSION_SECRET` (the server refuses to start in production without it) and the API keys in the host's environment.
 - Behind nginx or a load balancer, set `TRUST_PROXY=1` so rate limiting sees real client IPs, and terminate HTTPS at the proxy.

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "PUPPETEER_SKIP_DOWNLOAD=true npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 300,
+      "includeFiles": "{build/**,data/db.json,data/ecourts-facets.json}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/cron/hearing-reminders", "schedule": "30 2 * * *" }
+  ]
+}

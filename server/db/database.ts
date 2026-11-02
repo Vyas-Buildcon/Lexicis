@@ -14,8 +14,10 @@ import { MOCK_USERS, DEFAULT_HEARINGS } from './seedData';
 import { COURT_STATE_TABLE_SQL, getMongoDb, getPgPool, getSupabaseClient, withTimeout } from './remoteStores';
 import { hashPassword, isPasswordHash } from '../security/passwords';
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const DB_DIR = config.dataDir;
 const DB_FILE = path.join(DB_DIR, 'db.json');
+// Read-only copy shipped with the deployment, used to seed an empty data directory
+const SEED_FILE = path.join(config.bundledDataDir, 'db.json');
 
 interface DBStructure {
   users: User[];
@@ -47,8 +49,11 @@ class CaseDatabase {
   private remoteSyncQueued = false;
   private passwordsMigrated = false;
 
+  /** Settles once stored state has been loaded (local file, then MongoDB / Supabase). */
+  public readonly ready: Promise<void>;
+
   constructor() {
-    this.initDb();
+    this.ready = this.initDb().catch(e => console.error('[db] Initial load failed:', e));
   }
 
   // ==========================================
@@ -166,7 +171,8 @@ class CaseDatabase {
         fs.mkdirSync(DB_DIR, { recursive: true });
       }
 
-      const fileContent = fs.existsSync(DB_FILE) ? fs.readFileSync(DB_FILE, 'utf-8').trim() : '';
+      const source = fs.existsSync(DB_FILE) ? DB_FILE : (fs.existsSync(SEED_FILE) ? SEED_FILE : '');
+      const fileContent = source ? fs.readFileSync(source, 'utf-8').trim() : '';
       if (fileContent) {
         this.data = { ...this.data, ...JSON.parse(fileContent) };
         this.ensureRealCasesAndTracked();

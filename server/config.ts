@@ -7,6 +7,7 @@
  */
 import 'dotenv/config';
 import crypto from 'crypto';
+import path from 'path';
 
 function parseCliArgs(argv: string[]) {
   const parsed: { port?: number; host?: string } = {};
@@ -25,6 +26,8 @@ const env = (name: string) => process.env[name]?.trim() || '';
 
 const cli = parseCliArgs(process.argv.slice(2));
 const isProduction = process.env.NODE_ENV === 'production';
+// Vercel sets VERCEL=1; its functions can only write under /tmp
+const isVercel = !!process.env.VERCEL;
 
 /**
  * Secret for signing session tokens. Hosted deployments (e.g. Google AI Studio / Cloud Run)
@@ -49,6 +52,14 @@ export const config = {
   port: cli.port ?? parseInt(process.env.PORT || '3000', 10),
   host: cli.host ?? (env('HOST') || '0.0.0.0'),
   isProduction,
+  isVercel,
+
+  /** Writable directory for db.json and caches. Files bundled in ./data seed it when it is elsewhere. */
+  dataDir: env('DATA_DIR') || (isVercel ? path.join('/tmp', 'lexicis-data') : path.join(process.cwd(), 'data')),
+  bundledDataDir: path.join(process.cwd(), 'data'),
+
+  /** Vercel Cron sends this as a Bearer token to scheduled endpoints */
+  cronSecret: env('CRON_SECRET'),
   // Hosted deployments run behind a load balancer; client IPs then come from X-Forwarded-For.
   // Set TRUST_PROXY=0 when serving directly to the internet.
   trustProxy: env('TRUST_PROXY') || (isProduction ? '1' : ''),

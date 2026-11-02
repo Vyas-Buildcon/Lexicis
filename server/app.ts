@@ -7,6 +7,7 @@ import { publicAuthRoutes, accountRoutes } from './routes/authRoutes';
 import { caseRoutes } from './routes/caseRoutes';
 import { kanoonRoutes } from './routes/kanoonRoutes';
 import { legalRoutes } from './routes/legalRoutes';
+import { runHearingReminders } from './services/caseUpdateService';
 
 /** Builds the Express app with every /api route mounted. Front-end serving is added by the caller. */
 export function createApp() {
@@ -24,6 +25,20 @@ export function createApp() {
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
+  // Scheduled hearing reminders (Vercel Cron, which sends CRON_SECRET as a Bearer token)
+  app.get('/api/cron/hearing-reminders', async (req, res) => {
+    if (!config.cronSecret || req.headers.authorization !== `Bearer ${config.cronSecret}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    try {
+      const result = await runHearingReminders();
+      res.json({ success: true, sentCount: result.sentCount });
+    } catch (err) {
+      console.error('[CRON] Hearing reminders failed:', err);
+      res.status(500).json({ error: 'Hearing reminder run failed' });
+    }
+  });
+
   app.use('/api', rateLimit({ windowMs: 60 * 1000, max: 600, message: 'Too many requests. Please slow down.' }));
   app.use('/api', publicAuthRoutes);
 
