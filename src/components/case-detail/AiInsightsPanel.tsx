@@ -75,11 +75,6 @@ export default function AiInsightsPanel({ caseItem, insights, loadingInsights, o
           <div className="bg-amber-50/70 p-4 border-l-4 border-amber-500 rounded-r-xl">
             <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
               AI Legal Standing Summary
-              {typeof insights.ordersAnalyzed === 'number' && (
-                <span className="ml-2 normal-case tracking-normal font-semibold text-amber-700">
-                  · complete case to date, based on {insights.ordersAnalyzed} court order{insights.ordersAnalyzed === 1 ? '' : 's'}
-                </span>
-              )}
             </h4>
             <p className="text-sm text-slate-800 leading-relaxed font-sans font-medium whitespace-pre-line">
               {insights.summary}

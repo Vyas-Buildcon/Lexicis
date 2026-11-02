@@ -3,9 +3,9 @@ import { X, User as UserIcon, Edit3, Eye, EyeOff } from 'lucide-react';
 import { User } from '../../types';
 import * as api from '../../api/client';
 
-const DEFAULT_PHONE = '8975332899';
-const DEFAULT_ADDRESS = 'brickfour, Yerwada';
-const DEFAULT_FIRM = 'Brickfour';
+const DEFAULT_PHONE = '';
+const DEFAULT_ADDRESS = 'Vyas Group';
+const DEFAULT_FIRM = 'Vyas Group';
 const DEFAULT_PROFESSION = 'Legal Executive';
 
 interface ProfileModalProps {
@@ -216,11 +216,11 @@ export default function ProfileModal({ user, open, onClose, onUserUpdate, onPass
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Phone Number:</span>
-                <span className="font-mono text-slate-900">{user.phone || DEFAULT_PHONE}</span>
+                <span className="font-mono text-slate-900">{user.phone || 'Not provided'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Office Location:</span>
-                <span className="text-slate-900">{user.address || 'Brickfour, Pune'}</span>
+                <span className="text-slate-900">{user.address || DEFAULT_ADDRESS}</span>
               </div>
             </div>
 

@@ -404,16 +404,13 @@ class CaseDatabase {
       const dashboardDocs = caseDocs.filter(c => c.isTrackedOnDashboard);
 
       const writes: Promise<unknown>[] = [
-        mongo.collection('court_state').updateOne({ id: 'current' }, stateUpdate, { upsert: true }),
-        mongo.collection('spring_inventory_state').updateOne({ id: 'current' }, stateUpdate, { upsert: true })
+        mongo.collection('court_state').updateOne({ id: 'current' }, stateUpdate, { upsert: true })
       ];
       if (userOps.length > 0) {
         writes.push(mongo.collection('users').bulkWrite(userOps));
-        writes.push(mongo.collection('spring_inventory_users').bulkWrite(userOps));
       }
       if (caseDocs.length > 0) {
         writes.push(mongo.collection('cases').bulkWrite(upsertById(caseDocs)));
-        writes.push(mongo.collection('spring_inventory_cases').bulkWrite(upsertById(caseDocs)));
       }
       if (dashboardDocs.length > 0) {
         writes.push(mongo.collection('dashboard_cases').bulkWrite(upsertById(dashboardDocs)));

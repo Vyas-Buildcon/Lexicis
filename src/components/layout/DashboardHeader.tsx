@@ -31,7 +31,7 @@ const NAV_TABS: { id: AppTab; label: string; icon: LucideIcon; iconClassName: st
 ];
 
 function getInitials(name: string): string {
-  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AK';
+  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'VG';
 }
 
 export default function DashboardHeader({
@@ -55,7 +55,7 @@ export default function DashboardHeader({
 
           {/* Logo & Branding */}
           <div className="flex items-center space-x-2.5 flex-shrink-0">
-            <img src={appLogo} alt="LEXICIS" className="h-6 w-auto object-contain" />
+            <img src={appLogo} alt="Vyas Group" className="h-14 w-auto object-contain" />
             <span className="font-display font-bold text-lg sm:text-xl tracking-wider text-slate-900">LEXICIS</span>
           </div>
 

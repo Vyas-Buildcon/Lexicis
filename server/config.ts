@@ -71,16 +71,16 @@ export const config = {
 
   // The single authorised portal account (self-registration is disabled)
   adminAccount: {
-    id: 'archana-katkar',
-    email: 'archana.katkar@brickfour.com',
+    id: 'vyas-demo',
+    email: 'demo@vyasgroup.com',
     // Only used to seed a brand-new database; the stored (hashed) password is authoritative
-    initialPassword: env('ADMIN_INITIAL_PASSWORD') || 'Archana@123',
-    name: 'Archana Katkar',
+    initialPassword: env('ADMIN_INITIAL_PASSWORD') || 'Demo@123',
+    name: 'Vyas Admin',
     role: 'attorney' as const,
-    phone: '8975332899',
+    phone: '',
     profession: 'Legal Executive',
-    address: 'brickfour, Yerwada',
-    firmName: 'Brickfour'
+    address: 'Vyas Group',
+    firmName: 'Vyas Group'
   },
 
   geminiApiKey: env('GEMINI_API_KEY'),
@@ -96,7 +96,7 @@ export const config = {
   },
 
   mongoUrl: env('MONGODB_URL'),
-  mongoDbName: env('MONGODB_DB_NAME') || 'spring_inventory',
+  mongoDbName: env('MONGODB_DB_NAME') || 'vyas-lexicis',
 
   supabaseDisplayUrl: env('SUPABASE_URL') || 'Not configured',
 

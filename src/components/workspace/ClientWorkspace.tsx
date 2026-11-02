@@ -4,14 +4,16 @@
  */
 
 import React from 'react';
-import { Building, Calendar, Clock, ShieldCheck, ArrowRight, Landmark } from 'lucide-react';
+import { Calendar, Clock, ShieldCheck, ArrowRight, Landmark } from 'lucide-react';
 import { Case, Hearing, isProposedHearingDate } from '../../types';
+import NoCasesAdded from './NoCasesAdded';
 
 interface ClientWorkspaceProps {
   trackedCases: Case[];
   allHearings: Hearing[];
   onSelectCase: (c: Case) => void;
   onUntrackCase: (c: Case) => void;
+  onGoToSearch: () => void;
   selectedCaseId?: string;
 }
 
@@ -20,6 +22,7 @@ export default function ClientWorkspace({
   allHearings,
   onSelectCase,
   onUntrackCase,
+  onGoToSearch,
   selectedCaseId
 }: ClientWorkspaceProps) {
   const activeCases = trackedCases.filter(c => !c.currentStatus.toLowerCase().includes('disposed')).length;
@@ -83,12 +86,7 @@ export default function ClientWorkspace({
           </h3>
 
           {trackedCases.length === 0 ? (
-            <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl p-6 space-y-3">
-              <Building className="h-10 w-10 text-slate-300 mx-auto" />
-              <div>
-                <p className="text-sm font-semibold text-slate-700">No cases bound to your account</p>
-              </div>
-            </div>
+            <NoCasesAdded onGoToSearch={onGoToSearch} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {trackedCases.map(c => {

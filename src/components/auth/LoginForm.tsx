@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Zap, Crown, ArrowRight } from 'lucide-react';
 import { appLogo } from '../../assets/logo';
 import { User } from '../../types';
 import * as api from '../../api/client';
@@ -13,6 +13,11 @@ interface LoginFormProps {
   onAuthSuccess: (user: User) => void;
 }
 
+// Demo account seeded by the server (see adminAccount in server/config.ts)
+const DEMO_EMAIL = 'demo@vyasgroup.com';
+const DEMO_PASSWORD = 'Demo@123';
+const DEMO_NAME = 'Vyas Admin';
+
 export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,18 +25,28 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const signIn = async (signInEmail: string, signInPassword: string) => {
     setError('');
     setLoading(true);
 
     try {
-      onAuthSuccess(await api.login(email, password));
+      onAuthSuccess(await api.login(signInEmail, signInPassword));
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    signIn(email, password);
+  };
+
+  const handleQuickLogin = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    signIn(DEMO_EMAIL, DEMO_PASSWORD);
   };
 
   return (
@@ -41,7 +56,7 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
         {/* Branding Head */}
         <div className="text-center">
           <div className="inline-flex mb-3">
-            <img src={appLogo} alt="LEXICIS" className="h-9 w-auto object-contain" />
+            <img src={appLogo} alt="Vyas Group" className="h-24 w-auto object-contain" />
           </div>
           <h2 className="text-lg font-display font-bold text-slate-900 tracking-wider">LEXICIS</h2>
           <p className="text-xs text-slate-500 mt-1">Authorized Legal Counsel & Portfolio Portal</p>
@@ -69,7 +84,7 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@gmail.com"
+                placeholder="user@vyasgroup.com"
                 className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 id="input-email"
               />
@@ -117,7 +132,44 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
           >
             {loading ? "Authenticating..." : "Sign In to Portal"}
           </button>
+
         </form>
+
+        {/* Quick access */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1.5">
+              <Zap className="h-4 w-4 text-amber-500 fill-current" />
+              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Quick Access</span>
+            </div>
+            <span className="text-xs text-slate-500">1-Click Sign In</span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-300 rounded-lg">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center">
+                <Crown className="h-4 w-4 text-amber-600 fill-current" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-slate-900">{DEMO_NAME}</span>
+                  <span className="px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 bg-amber-100 border border-amber-300 rounded uppercase tracking-wider">Admin</span>
+                </div>
+                <p className="text-xs text-slate-500 truncate mt-0.5">{DEMO_EMAIL}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleQuickLogin}
+              disabled={loading}
+              className="flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 border border-amber-500 rounded-lg text-sm font-semibold text-slate-950 bg-white hover:bg-amber-50 transition-all cursor-pointer disabled:opacity-50"
+              id="btn-quick-login"
+            >
+              <span>Sign In</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
       </div>
     </div>

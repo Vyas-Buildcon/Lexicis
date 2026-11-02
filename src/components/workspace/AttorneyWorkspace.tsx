@@ -4,14 +4,16 @@
  */
 
 import React, { useState } from 'react';
-import { Briefcase, Calendar, AlertCircle, ChevronRight } from 'lucide-react';
+import { Briefcase, Calendar, ChevronRight } from 'lucide-react';
 import { Case, isProposedHearingDate } from '../../types';
+import NoCasesAdded from './NoCasesAdded';
 
 interface AttorneyWorkspaceProps {
   attorneyName: string;
   trackedCases: Case[];
   onSelectCase: (c: Case) => void;
   onUntrackCase: (c: Case) => void;
+  onGoToSearch: () => void;
   selectedCaseId?: string;
 }
 
@@ -20,6 +22,7 @@ export default function AttorneyWorkspace({
   trackedCases,
   onSelectCase,
   onUntrackCase,
+  onGoToSearch,
   selectedCaseId
 }: AttorneyWorkspaceProps) {
   const [selectedCase, setSelectedCase] = useState<Case | null>(
@@ -63,10 +66,7 @@ export default function AttorneyWorkspace({
         </div>
 
         {trackedCases.length === 0 ? (
-          <div className="text-center py-20 text-slate-400 border border-dashed border-slate-200 bg-white rounded-2xl space-y-3">
-            <AlertCircle className="h-8 w-8 mx-auto text-slate-300" />
-            <p className="text-xs font-semibold text-slate-600">No active portfolios listed</p>
-          </div>
+          <NoCasesAdded onGoToSearch={onGoToSearch} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {trackedCases.map(c => {

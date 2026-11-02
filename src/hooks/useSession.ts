@@ -4,7 +4,7 @@ import { clearSession, readSessionToken, readSessionUser, writeSessionUser } fro
 import { SESSION_EXPIRED_EVENT } from '../api/client';
 
 // Only this account may use the portal; any other cached session is discarded
-const AUTHORIZED_EMAIL = 'archana.katkar@brickfour.com';
+const AUTHORIZED_EMAIL = 'demo@vyasgroup.com';
 
 function restoreSession(): User | null {
   const cached = readSessionUser();

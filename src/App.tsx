@@ -16,6 +16,7 @@ import AppFooter from './components/layout/AppFooter';
 import AttorneyWorkspace from './components/workspace/AttorneyWorkspace';
 import ClientWorkspace from './components/workspace/ClientWorkspace';
 import NoCaseSelected from './components/workspace/NoCaseSelected';
+import NoCasesAdded from './components/workspace/NoCasesAdded';
 import CaseSearch from './components/search/CaseSearch';
 import CaseDetailView from './components/case-detail/CaseDetailView';
 import EmailOutbox from './components/outbox/EmailOutbox';
@@ -131,6 +132,7 @@ export default function App() {
                     trackedCases={trackedCases}
                     onSelectCase={selectCaseFromWorkspace}
                     onUntrackCase={setCaseToUnbind}
+                    onGoToSearch={() => setActiveTab('search')}
                     selectedCaseId={selectedCase?.id}
                   />
                 ) : (
@@ -139,6 +141,7 @@ export default function App() {
                     allHearings={portfolio.allHearings}
                     onSelectCase={selectCaseFromWorkspace}
                     onUntrackCase={setCaseToUnbind}
+                    onGoToSearch={() => setActiveTab('search')}
                     selectedCaseId={selectedCase?.id}
                   />
                 )}
@@ -164,6 +167,8 @@ export default function App() {
                   onChatOpenChange={setAutoOpenChat}
                   onUntrackCase={setCaseToUnbind}
                 />
+              ) : trackedCases.length === 0 ? (
+                <NoCasesAdded onGoToSearch={() => setActiveTab('search')} />
               ) : (
                 <NoCaseSelected onGoToPortfolio={() => setActiveTab('dashboard')} />
               )

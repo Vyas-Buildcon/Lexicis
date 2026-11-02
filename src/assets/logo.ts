@@ -1,3 +1,3 @@
-import appLogo from './brickfour-logo.jpeg';
+import appLogo from './vyas logo.png';
 
 export { appLogo };
